@@ -30,7 +30,6 @@
     button.google { background:#4285F4; }
     button.google:hover { background:#357ae8; }
     .auth-info { text-align:center; font-size:16px; margin:15px 0; color:#0cc; }
-    .error { color:#f44; text-align:center; margin:10px 0; }
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; }
     .modal-content { background:#111; border:2px solid #0f8; border-radius:16px; padding:20px; width:90%; max-width:420px; max-height:90vh; overflow-y:auto; }
     input, select, input[type="time"] { width:100%; padding:10px; margin:6px 0; border-radius:6px; background:#222; border:1px solid #0f03; color:#0f8; font-size:15px; }
@@ -45,7 +44,6 @@
 
   <div id="auth-section" class="card">
     <div class="auth-info" id="user-info">Не авторизовано</div>
-    <div id="auth-error" class="error"></div>
     <button class="google" onclick="signInWithGoogle()">Увійти через Google</button>
     <button onclick="signOut()" id="signout-btn" style="display:none;background:#444;">Вийти</button>
   </div>
@@ -127,7 +125,7 @@
     <label>Харчування</label>
     <select id="nutrition">
       <option value="0">— обери —</option>
-      <option value="5">2 невеликі + здорове</option>
+      <option value="5">3 невеликі + здорове</option>
       <option value="4">3 + здорове</option>
       <option value="3">Переїдання здорової</option>
       <option value="2">Фастфуд/солодощі без переїдання</option>
@@ -171,8 +169,8 @@ const db = firebase.firestore();
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(err => {
-    console.error("Помилка авторизації:", err);
-    document.getElementById('auth-error').textContent = "Помилка: " + (err.message || "Спробуйте ще раз");
+    console.error(err);
+    alert("Помилка входу: " + err.message);
   });
 }
 
@@ -207,7 +205,7 @@ function loadUserData(uid) {
     firstDay = dates.length ? new Date(dates[0]) : null;
     renderCalendar();
     renderAllCards(formatDate(new Date()));
-  }, err => console.error("Помилка завантаження даних:", err));
+  });
 }
 
 function saveData() {
@@ -229,12 +227,13 @@ function saveData() {
     .then(() => {
       closeModal();
       alert("Дані збережено!");
-      renderAllCards(date); // оновити картки відразу
-      renderCalendar(); // оновити календар
+      // Примусове оновлення інтерфейсу
+      renderAllCards(date);
+      renderCalendar();
     })
     .catch(err => {
       console.error("Помилка збереження:", err);
-      alert("Не вдалося зберегти дані: " + err.message);
+      alert("Не вдалося зберегти: " + err.message);
     });
 }
 
@@ -305,22 +304,22 @@ function renderAllCards(dateStr) {
   document.getElementById('phys-score').textContent = phys + ' / 5';
   document.getElementById('phys-score').className = `big-score ${phys>=4?'good':phys>=3?'mid':'bad'}`;
   renderTable('phys-table', [
-    [5, 'Пробежка 5 км'],
-    [4, '10 000 шагов'],
-    [3, '5 000 шагов'],
-    [2, '2 500 шагов'],
-    [1, '<2 500 шагов']
+    [5, '3700 шагов'],
+    [4, '3000 шагов'],
+    [3, '1800 шагов'],
+    [2, '1000 шагов'],
+    [1, '<1000 шагов']
   ], phys);
 
   // Питание
   document.getElementById('nutrition-score').textContent = nutr + ' / 5';
   document.getElementById('nutrition-score').className = `big-score ${nutr>=4?'good':nutr>=3?'mid':'bad'}`;
   renderTable('nutrition-table', [
-    [5, '2 приема, небольшие порции, здоровое'],
-    [4, '3 приема, здоровое'],
+    [5, '3 приема, небольшие порции, здоровое'],
+    [4, '4 приема, здоровое'],
     [3, 'Переедание здоровой пищи'],
     [2, 'Фастфуд, сладости, без переедания'],
-    [1, 'Переедание, фастфуд, сладости']
+    [1, 'Переедание, фастфуд, сладости,1 небольшая порция']
   ], nutr);
 
   // Механіка
@@ -356,7 +355,7 @@ function renderAllCards(dateStr) {
     [1, 'Спал <6 часов']
   ], sleep);
 
-  // Загальний підсумок
+  // Ітоги дня
   document.getElementById('total-score').textContent = total + ' / 5';
   document.getElementById('total-score').className = `big-score ${total>=4.5?'good':total>=3?'mid':'bad'}`;
 }
@@ -390,6 +389,9 @@ function openModal() {
 
 function closeModal() {
   document.getElementById('modal').style.display = 'none';
+  // Оновлюємо інтерфейс після закриття модалки
+  renderAllCards(formatDate(new Date()));
+  renderCalendar();
 }
 
 // ==================== КАЛЕНДАР ====================

@@ -124,14 +124,14 @@
     <div class="card">
       <span class="icon">📈</span>
       <div class="title">Результаты матчей</div>
-      <div id="results-content" style="text-align:center; font-size:18px; line-height:1.6;"></div>
+      <div id="results-content" style="text-align:center;font-size:18px;line-height:1.6;"></div>
     </div>
 
     <!-- Індивідуальні результати -->
     <div class="card">
       <span class="icon">📊</span>
       <div class="title">Индивидуальные результаты</div>
-      <div id="ind-content" style="text-align:center; font-size:18px; line-height:1.6;"></div>
+      <div id="ind-content" style="text-align:center;font-size:18px;line-height:1.6;"></div>
     </div>
 
     <!-- Ціль ELO -->
@@ -187,7 +187,7 @@
       <option value="1">Переїдання + фастфуд + солодощі</option>
     </select>
 
-    <label>Фраги на DM</label>
+    <label>Фраги DM</label>
     <input type="number" id="dm" placeholder="1000">
 
     <label>Матчі Faceit</label>
@@ -222,16 +222,11 @@ const db = firebase.firestore();
 
 // ==================== АВТОРИЗАЦІЯ ====================
 function signInWithGoogle() {
-  document.getElementById('auth-error').textContent = 'Відкривається вікно Google... зачекайте';
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
-    .catch(error => {
-      let msg = "Помилка входу. Спробуйте ще раз.";
-      if (error.code === 'auth/popup-blocked') msg = "Браузер заблокував попап. Дозвольте попапи.";
-      if (error.code === 'auth/invalid-api-key') msg = "Неправильний Firebase config.";
-      document.getElementById('auth-error').textContent = msg;
-      console.error(error);
-    });
+  auth.signInWithPopup(provider).catch(err => {
+    console.error("Помилка авторизації:", err);
+    document.getElementById('auth-error').textContent = "Помилка: " + (err.message || "Спробуйте ще раз");
+  });
 }
 
 function signOut() {
@@ -341,14 +336,9 @@ function getTotalScore(d) {
   return Math.round(scores.reduce((a,b)=>a+b,0) / scores.length * 10) / 10;
 }
 
-// ==================== РЕНДЕР ====================
+// ==================== РЕНДЕР КАРТОК ====================
 function renderAllCards(dateStr) {
-  const d = userData[dateStr];
-  if (!d) {
-    document.querySelectorAll('.big-score').forEach(el => el.textContent = '— / 5');
-    return;
-  }
-
+  const d = userData[dateStr] || {};
   const phys = getPhysScore(d.steps || 0);
   const nutr = getNutritionScore(d.nutrition || 0);
   const mech = getMechScore(d.dm || 0);
@@ -356,6 +346,7 @@ function renderAllCards(dateStr) {
   const sleep = getSleepScore(d.sleepStart, d.sleepEnd);
   const total = getTotalScore(d);
 
+  // Фіз. активність
   document.getElementById('phys-score').textContent = phys + ' / 5';
   document.getElementById('phys-score').className = `big-score ${phys>=4?'good':phys>=3?'mid':'bad'}`;
   renderTable('phys-table', [
@@ -366,6 +357,7 @@ function renderAllCards(dateStr) {
     [1, '<2 500 шагов']
   ], phys);
 
+  // Питание
   document.getElementById('nutrition-score').textContent = nutr + ' / 5';
   document.getElementById('nutrition-score').className = `big-score ${nutr>=4?'good':nutr>=3?'mid':'bad'}`;
   renderTable('nutrition-table', [
@@ -376,6 +368,7 @@ function renderAllCards(dateStr) {
     [1, 'Переедание, фастфуд, сладости']
   ], nutr);
 
+  // Механіка
   document.getElementById('mech-score').textContent = mech + ' / 5';
   document.getElementById('mech-score').className = `big-score ${mech>=4?'good':mech>=3?'mid':'bad'}`;
   renderTable('mech-table', [
@@ -386,6 +379,7 @@ function renderAllCards(dateStr) {
     [1, '<100 фрагов']
   ], mech);
 
+  // Faceit
   document.getElementById('faceit-score').textContent = face + ' / 5';
   document.getElementById('faceit-score').className = `big-score ${face>=4?'good':face>=3?'mid':'bad'}`;
   renderTable('faceit-table', [
@@ -396,6 +390,7 @@ function renderAllCards(dateStr) {
     [1, '0 матчей']
   ], face);
 
+  // Сон
   document.getElementById('sleep-score').textContent = sleep + ' / 5';
   document.getElementById('sleep-score').className = `big-score ${sleep>=4?'good':sleep>=3?'mid':'bad'}`;
   renderTable('sleep-table', [
@@ -406,16 +401,20 @@ function renderAllCards(dateStr) {
     [1, 'Спал <6 часов']
   ], sleep);
 
+  // Загальний підсумок
   document.getElementById('total-score').textContent = total + ' / 5';
   document.getElementById('total-score').className = `big-score ${total>=4.5?'good':total>=3?'mid':'bad'}`;
 }
 
-function renderTable(id, rows, active) {
+function renderTable(id, rows, activeScore) {
   let html = '';
   rows.forEach(([score, text]) => {
-    const cls = score === active ? 'active' : '';
+    const isActive = score === activeScore;
     const color = score === 5 ? '#0f0' : score === 4 ? '#ff0' : score === 3 ? '#ff0' : score === 2 ? '#f80' : '#f44';
-    html += `<tr class="\( {cls}"><td class="score-col" style="color: \){color}">\( {score}</td><td> \){text}</td></tr>`;
+    html += `<tr ${isActive ? 'class="active"' : ''}>
+      <td class="score-col" style="color:\( {color}"> \){score}</td>
+      <td>${text}</td>
+    </tr>`;
   });
   document.getElementById(id).innerHTML = html;
 }
@@ -466,10 +465,10 @@ function renderCalendar() {
   while (day <= last.getDate()) {
     if ((startWd + day - 1) % 7 === 0 && day > 1) html += '</tr><tr>';
     const dateStr = formatDate(new Date(y, m, day));
-    const has = userData[dateStr] ? ' style="background:#0a4022;cursor:pointer;" onclick="renderAllCards(\''+dateStr+'\')"' : '';
+    const hasData = userData[dateStr] ? ' style="background:#0a4022;cursor:pointer;" onclick="renderAllCards(\''+dateStr+'\')"' : '';
     const num = getDayNumber(dateStr);
     const label = num ? `<div class="day-label">День №${num}</div>` : '';
-    html += `<td\( {has}> \){day}${label}</td>`;
+    html += `<td\( {hasData}> \){day}${label}</td>`;
     day++;
   }
   html += '</tr>';
@@ -479,7 +478,7 @@ function renderCalendar() {
 function prevMonth() { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); }
 function nextMonth() { currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); }
 
-// ==================== ПОРІВНЯННЯ ====================
+// ==================== ПОРІВНЯННЯ З ВЧОРА ====================
 function compareWithYesterday() {
   let yest = new Date();
   yest.setDate(yest.getDate() - 1);
@@ -489,9 +488,9 @@ function compareWithYesterday() {
   const t = getTotalScore(userData[todayStr]);
   const y = getTotalScore(userData[yestStr]);
 
-  if (!t || !y) return alert('Немає даних для порівняння');
+  if (t === 0 || y === 0) return alert('Немає даних для порівняння');
 
-  alert(`Сьогодні: ${t}/5\nВчора: ${y}/5\nРізниця: ${(t - y).toFixed(1)}`);
+  alert(`Сьогодні: ${t} / 5\nВчора: ${y} / 5\nРізниця: ${(t - y).toFixed(1)}`);
 }
 
 // Початок

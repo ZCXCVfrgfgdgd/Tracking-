@@ -11,57 +11,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
   <style>
-    body {
-      margin: 0; font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #0a150f, #000);
-      color: #0f8; min-height: 100vh; padding: 10px; box-sizing: border-box;
-    }
-    h1 { text-align: center; color: #0f0; margin: 15px 0; }
-    .container { max-width: 460px; margin: 0 auto; }
-    .card {
-      background: rgba(0,0,0,0.7); border: 2px solid #0f03;
-      border-radius: 16px; margin: 16px auto; padding: 16px;
-      box-shadow: 0 4px 20px rgba(0,255,80,0.1);
-    }
-    .icon { font-size: 60px; text-align: center; margin-bottom: 6px; display: block; }
-    .title { text-align: center; font-size: 22px; margin: 0 0 10px; color: #0ff; }
-    .big-score {
-      font-size: 64px; font-weight: bold; text-align: center; margin: 6px 0; line-height: 1;
-    }
-    .big-score.good { color: #0f8; }
-    .big-score.mid  { color: #ff8; }
-    .big-score.bad  { color: #f44; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-    td { padding: 8px 4px; border-bottom: 1px solid #222; }
-    .score-col { width: 30px; text-align: center; font-size: 20px; font-weight: bold; }
-    tr.active { background: rgba(0,255,80,0.15); font-weight: bold; }
-    button {
-      background: #0a5; color: #fff; border: none; padding: 12px; font-size: 17px;
-      border-radius: 10px; width: 100%; margin: 10px 0; cursor: pointer;
-    }
-    button:hover { background: #0c7; }
-    button.google { background: #4285F4; }
-    button.google:hover { background: #357ae8; }
-    .auth-info { text-align: center; font-size: 16px; margin: 15px 0; color: #0cc; }
-    .error { color: #f44; text-align: center; margin: 10px 0; }
-    .modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center;
-    }
-    .modal-content {
-      background: #111; border: 2px solid #0f8; border-radius: 16px;
-      padding: 20px; width: 90%; max-width: 420px; max-height: 90vh; overflow-y: auto;
-    }
-    input, select, input[type="time"] {
-      width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px;
-      background: #222; border: 1px solid #0f03; color: #0f8; font-size: 15px;
-    }
-    label { display: block; margin: 10px 0 4px; color: #0cc; }
-    .day-label { font-size: 12px; color: #0f0; text-align: center; margin-top: 4px; }
-    .progress-bar {
-      height: 12px; background: #222; border-radius: 6px; margin: 12px 0; overflow: hidden;
-    }
-    .progress-fill { height: 100%; background: linear-gradient(to right, #0f0, #0f8); }
+    body { margin:0; font-family:Arial,sans-serif; background:linear-gradient(to bottom,#0a150f,#000); color:#0f8; min-height:100vh; padding:10px; box-sizing:border-box; }
+    h1 { text-align:center; color:#0f0; margin:15px 0; }
+    .container { max-width:460px; margin:0 auto; }
+    .card { background:rgba(0,0,0,0.7); border:2px solid #0f03; border-radius:16px; margin:16px auto; padding:16px; box-shadow:0 4px 20px rgba(0,255,80,0.1); }
+    .icon { font-size:60px; text-align:center; margin-bottom:6px; display:block; }
+    .title { text-align:center; font-size:22px; margin:0 0 10px; color:#0ff; }
+    .big-score { font-size:64px; font-weight:bold; text-align:center; margin:6px 0; line-height:1; }
+    .big-score.good { color:#0f8; }
+    .big-score.mid { color:#ff8; }
+    .big-score.bad { color:#f44; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+    td { padding:8px 4px; border-bottom:1px solid #222; }
+    .score-col { width:30px; text-align:center; font-size:20px; font-weight:bold; }
+    tr.active { background:rgba(0,255,80,0.15); font-weight:bold; }
+    button { background:#0a5; color:#fff; border:none; padding:12px; font-size:17px; border-radius:10px; width:100%; margin:10px 0; cursor:pointer; }
+    button:hover { background:#0c7; }
+    button.google { background:#4285F4; }
+    button.google:hover { background:#357ae8; }
+    .auth-info { text-align:center; font-size:16px; margin:15px 0; color:#0cc; }
+    .error { color:#f44; text-align:center; margin:10px 0; }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; }
+    .modal-content { background:#111; border:2px solid #0f8; border-radius:16px; padding:20px; width:90%; max-width:420px; max-height:90vh; overflow-y:auto; }
+    input, select, input[type="time"] { width:100%; padding:10px; margin:6px 0; border-radius:6px; background:#222; border:1px solid #0f03; color:#0f8; font-size:15px; }
+    label { display:block; margin:10px 0 4px; color:#0cc; }
+    .day-label { font-size:12px; color:#0f0; text-align:center; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -73,7 +47,7 @@
     <div class="auth-info" id="user-info">Не авторизовано</div>
     <div id="auth-error" class="error"></div>
     <button class="google" onclick="signInWithGoogle()">Увійти через Google</button>
-    <button onclick="signOut()" id="signout-btn" style="display:none; background:#444;">Вийти</button>
+    <button onclick="signOut()" id="signout-btn" style="display:none;background:#444;">Вийти</button>
   </div>
 
   <div id="main-content" style="display:none;">
@@ -118,33 +92,6 @@
       <div class="title">Режим сна</div>
       <div id="sleep-score" class="big-score">— / 5</div>
       <table id="sleep-table"></table>
-    </div>
-
-    <!-- Результати матчів -->
-    <div class="card">
-      <span class="icon">📈</span>
-      <div class="title">Результаты матчей</div>
-      <div id="results-content" style="text-align:center;font-size:18px;line-height:1.6;"></div>
-    </div>
-
-    <!-- Індивідуальні результати -->
-    <div class="card">
-      <span class="icon">📊</span>
-      <div class="title">Индивидуальные результаты</div>
-      <div id="ind-content" style="text-align:center;font-size:18px;line-height:1.6;"></div>
-    </div>
-
-    <!-- Ціль ELO -->
-    <div class="card">
-      <span class="icon">🎯</span>
-      <div class="title">Первая цель - 4000 ELO</div>
-      <div style="text-align:center;">
-        <div id="goal-progress-text" style="margin-bottom:8px;"></div>
-        <div class="progress-bar"><div id="goal-progress-fill" class="progress-fill" style="width:0%"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:14px;color:#888;">
-          <span>2500 ELO</span><span id="current-elo">—</span>
-        </div>
-      </div>
     </div>
 
     <!-- Ітоги дня -->
@@ -260,7 +207,7 @@ function loadUserData(uid) {
     firstDay = dates.length ? new Date(dates[0]) : null;
     renderCalendar();
     renderAllCards(formatDate(new Date()));
-  });
+  }, err => console.error("Помилка завантаження даних:", err));
 }
 
 function saveData() {
@@ -273,14 +220,22 @@ function saveData() {
     nutrition: document.getElementById('nutrition').value || "0",
     dm: Number(document.getElementById('dm').value) || 0,
     faceit: Number(document.getElementById('faceit').value) || 0,
-    sleepStart: document.getElementById('sleep-start').value,
-    sleepEnd: document.getElementById('sleep-end').value,
+    sleepStart: document.getElementById('sleep-start').value || '',
+    sleepEnd: document.getElementById('sleep-end').value || '',
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   db.collection("users").doc(user.uid).collection("days").doc(date).set(entry, {merge: true})
-    .then(() => { closeModal(); alert("Збережено!"); })
-    .catch(err => alert("Помилка збереження: " + err.message));
+    .then(() => {
+      closeModal();
+      alert("Дані збережено!");
+      renderAllCards(date); // оновити картки відразу
+      renderCalendar(); // оновити календар
+    })
+    .catch(err => {
+      console.error("Помилка збереження:", err);
+      alert("Не вдалося зберегти дані: " + err.message);
+    });
 }
 
 // ==================== РОЗРАХУНКИ ====================
@@ -397,7 +352,7 @@ function renderAllCards(dateStr) {
     [5, 'Спал ≥7:30 и встал до 11:00'],
     [4, 'Спал ≥7:30, встал после 11:00'],
     [3, '6-7:30, встал до 11:00'],
-    [2, '6-7:30, встал after 11:00'],
+    [2, '6-7:30, встал после 11:00'],
     [1, 'Спал <6 часов']
   ], sleep);
 
@@ -421,7 +376,7 @@ function renderTable(id, rows, activeScore) {
 
 // ==================== МОДАЛ ====================
 function openModal() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDate(new Date());
   document.getElementById('modal-date').textContent = today;
   const d = userData[today] || {};
   document.getElementById('steps').value = d.steps || '';

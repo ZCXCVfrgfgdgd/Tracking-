@@ -164,6 +164,10 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 // ==================== АВТОРИЗАЦІЯ ====================
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();

@@ -57,6 +57,10 @@
     }
     label { display: block; margin: 10px 0 4px; color: #0cc; }
     .day-label { font-size: 12px; color: #0f0; text-align: center; margin-top: 4px; }
+    .progress-bar {
+      height: 12px; background: #222; border-radius: 6px; margin: 12px 0; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: linear-gradient(to right, #0f0, #0f8); }
   </style>
 </head>
 <body>
@@ -74,25 +78,77 @@
     <button onclick="openModal()">Ввести / редагувати дані за сьогодні</button>
     <button onclick="compareWithYesterday()">Порівняти з вчора</button>
 
-    <!-- Приклад карток (можеш додати інші аналогічно) -->
+    <!-- Фіз. активність -->
+    <div id="phys-card" class="card">
+      <span class="icon">👟</span>
+      <div class="title">Фіз. активність</div>
+      <div id="phys-score" class="big-score">— / 5</div>
+      <table id="phys-table"></table>
+    </div>
+
+    <!-- Питание -->
     <div id="nutrition-card" class="card">
       <span class="icon">🍩</span>
-      <div class="title">Харчування</div>
+      <div class="title">Питание</div>
       <div id="nutrition-score" class="big-score">— / 5</div>
       <table id="nutrition-table"></table>
     </div>
 
+    <!-- Механіка -->
+    <div id="mech-card" class="card">
+      <span class="icon">🎯</span>
+      <div class="title">Механический навык</div>
+      <div id="mech-score" class="big-score">— / 5</div>
+      <table id="mech-table"></table>
+    </div>
+
+    <!-- Faceit -->
+    <div id="faceit-card" class="card">
+      <span class="icon">🏆</span>
+      <div class="title">Faceit</div>
+      <div id="faceit-score" class="big-score">— / 5</div>
+      <table id="faceit-table"></table>
+    </div>
+
+    <!-- Сон -->
     <div id="sleep-card" class="card">
       <span class="icon">😴</span>
-      <div class="title">Сон</div>
+      <div class="title">Режим сна</div>
       <div id="sleep-score" class="big-score">— / 5</div>
       <table id="sleep-table"></table>
     </div>
 
-    <!-- Загальний підсумок -->
+    <!-- Результати матчів -->
+    <div id="results-card" class="card">
+      <span class="icon">📈</span>
+      <div class="title">Результаты матчей</div>
+      <div id="results-content" style="text-align:center; font-size:18px; line-height:1.6;"></div>
+    </div>
+
+    <!-- Індивідуальні результати -->
+    <div id="ind-card" class="card">
+      <span class="icon">📊</span>
+      <div class="title">Индивидуальные результаты</div>
+      <div id="ind-content" style="text-align:center; font-size:18px; line-height:1.6;"></div>
+    </div>
+
+    <!-- Ціль ELO -->
+    <div id="goal-card" class="card">
+      <span class="icon">🎯</span>
+      <div class="title">Первая цель - 4000 ELO</div>
+      <div style="text-align:center;">
+        <div id="goal-progress-text" style="margin-bottom:8px;"></div>
+        <div class="progress-bar"><div id="goal-progress-fill" class="progress-fill" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#888;">
+          <span>2500 ELO</span><span id="current-elo">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ітоги дня -->
     <div id="total-card" class="card">
       <span class="icon">🌟</span>
-      <div class="title">ІТОГИ ДНЯ</div>
+      <div class="title">Итоги дня</div>
       <div id="total-score" class="big-score">— / 5</div>
     </div>
 
@@ -116,24 +172,24 @@
   <div class="modal-content">
     <h2>Дані за <span id="modal-date"></span></h2>
 
-    <label>Кроки сьогодні</label>
+    <label>Кроки</label>
     <input type="number" id="steps" placeholder="12000">
 
     <label>Харчування</label>
     <select id="nutrition">
-      <option value="0">— обери —</option>
-      <option value="5">2 прийоми, невеликі порції, здорове</option>
-      <option value="4">3 прийоми, здорове</option>
+      <option value="0">—</option>
+      <option value="5">2 невеликі + здорове</option>
+      <option value="4">3 + здорове</option>
       <option value="3">Переїдання здорової</option>
       <option value="2">Фастфуд/солодощі без переїдання</option>
       <option value="1">Переїдання + фастфуд + солодощі</option>
     </select>
 
-    <label>Фраги на DM</label>
-    <input type="number" id="dm-frags" placeholder="750">
+    <label>Фраги DM</label>
+    <input type="number" id="dm" placeholder="1000">
 
-    <label>Матчів Faceit</label>
-    <input type="number" id="faceit-matches" placeholder="6">
+    <label>Матчі Faceit</label>
+    <input type="number" id="faceit" placeholder="6">
 
     <label>Ліг спати о</label>
     <input type="time" id="sleep-start">
@@ -141,8 +197,7 @@
     <label>Проснувся о</label>
     <input type="time" id="sleep-end">
 
-    <!-- Додай інші поля, якщо треба (ELO, K/D тощо) -->
-
+    <!-- Додай інші поля, якщо треба -->
     <button onclick="saveData()" style="margin-top:20px;">Зберегти</button>
     <button onclick="closeModal()" style="background:#333;">Закрити</button>
   </div>
@@ -164,14 +219,10 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 // ==================== АВТОРИЗАЦІЯ ====================
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => alert("Помилка: " + err.message));
+  auth.signInWithPopup(provider).catch(err => alert("Помилка входу: " + err.message));
 }
 
 function signOut() {
@@ -204,7 +255,7 @@ function loadUserData(uid) {
     const dates = Object.keys(userData).sort();
     firstDay = dates.length ? new Date(dates[0]) : null;
     renderCalendar();
-    renderCard('today'); // сьогодні
+    renderAllCards(formatDate(new Date()));
   });
 }
 
@@ -216,8 +267,8 @@ function saveData() {
   const entry = {
     steps: Number(document.getElementById('steps').value) || 0,
     nutrition: document.getElementById('nutrition').value || "0",
-    dmFrags: Number(document.getElementById('dm-frags').value) || 0,
-    faceitMatches: Number(document.getElementById('faceit-matches').value) || 0,
+    dm: Number(document.getElementById('dm').value) || 0,
+    faceit: Number(document.getElementById('faceit').value) || 0,
     sleepStart: document.getElementById('sleep-start').value,
     sleepEnd: document.getElementById('sleep-end').value,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -228,7 +279,14 @@ function saveData() {
     .catch(err => alert("Помилка: " + err.message));
 }
 
-// ==================== РОЗРАХУНКИ ОЦІНОК ====================
+// ==================== РОЗРАХУНКИ ====================
+function getPhysScore(steps) {
+  if (steps >= 10000) return 4; // 5 тільки якщо біг 5 км (можна додати поле)
+  if (steps >= 5000) return 3;
+  if (steps >= 2500) return 2;
+  return 1;
+}
+
 function getNutritionScore(v) { return Number(v) || 0; }
 
 function getMechScore(f) {
@@ -254,54 +312,147 @@ function getSleepScore(start, end) {
   let min = (eh*60 + em) - (sh*60 + sm);
   if (min < 0) min += 1440;
   const hours = min / 60;
-  const wakeH = eh + em/60;
-  if (hours >= 7.5 && wakeH <= 11) return 5;
+  const wake = eh + em/60;
+  if (hours >= 7.5 && wake <= 11) return 5;
   if (hours >= 7.5) return 4;
-  if (hours >= 6 && wakeH <= 11) return 3;
+  if (hours >= 6 && wake <= 11) return 3;
   if (hours >= 6) return 2;
   return 1;
 }
 
 function getTotalScore(d) {
   if (!d) return 0;
-  const s = [
-    getNutritionScore(d.nutrition),
-    getMechScore(d.dmFrags || 0),
-    getFaceitScore(d.faceitMatches || 0),
+  const scores = [
+    getPhysScore(d.steps || 0),
+    getNutritionScore(d.nutrition || 0),
+    getMechScore(d.dm || 0),
+    getFaceitScore(d.faceit || 0),
     getSleepScore(d.sleepStart, d.sleepEnd)
   ];
-  return Math.round(s.reduce((a,b)=>a+b,0) / s.length * 10) / 10;
+  return Math.round(scores.reduce((a,b)=>a+b,0) / scores.length * 10) / 10;
 }
 
 // ==================== РЕНДЕР КАРТОК ====================
-function renderCard(dateStr) {
+function renderAllCards(dateStr) {
   const d = userData[dateStr];
   if (!d) {
+    document.querySelectorAll('.big-score').forEach(el => el.textContent = '— / 5');
+    document.getElementById('results-content').innerHTML = '<p style="color:#666">Даних немає</p>';
+    document.getElementById('ind-content').innerHTML = '<p style="color:#666">Даних немає</p>';
+    document.getElementById('goal-progress-fill').style.width = '0%';
+    document.getElementById('current-elo').textContent = '—';
     document.getElementById('total-score').textContent = '— / 5';
-    // очисти інші картки
     return;
   }
 
-  const nutr = getNutritionScore(d.nutrition);
-  const mech = getMechScore(d.dmFrags || 0);
-  const face = getFaceitScore(d.faceitMatches || 0);
+  const phys = getPhysScore(d.steps || 0);
+  const nutr = getNutritionScore(d.nutrition || 0);
+  const mech = getMechScore(d.dm || 0);
+  const face = getFaceitScore(d.faceit || 0);
   const sleep = getSleepScore(d.sleepStart, d.sleepEnd);
   const total = getTotalScore(d);
 
-  // Приклад для однієї картки (додай інші)
+  // Фізуха
+  document.getElementById('phys-score').textContent = phys + ' / 5';
+  document.getElementById('phys-score').className = `big-score ${phys>=4?'good':phys>=3?'mid':'bad'}`;
+  renderTable('phys-table', [
+    [5, 'Пробежка 5 км'],
+    [4, '10 000 шагов'],
+    [3, '5 000 шагов'],
+    [2, '2 500 шагов'],
+    [1, '<2 500 шагов']
+  ], phys);
+
+  // Питание
+  document.getElementById('nutrition-score').textContent = nutr + ' / 5';
+  document.getElementById('nutrition-score').className = `big-score ${nutr>=4?'good':nutr>=3?'mid':'bad'}`;
+  renderTable('nutrition-table', [
+    [5, '2 приема, небольшие порции, здоровое'],
+    [4, '3 приема, здоровое'],
+    [3, 'Переедание здоровой пищи'],
+    [2, 'Фастфуд, сладости, без переедания'],
+    [1, 'Переедание, фастфуд, сладости']
+  ], nutr);
+
+  // Механіка
+  document.getElementById('mech-score').textContent = mech + ' / 5';
+  document.getElementById('mech-score').className = `big-score ${mech>=4?'good':mech>=3?'mid':'bad'}`;
+  renderTable('mech-table', [
+    [5, '≥1000 фрагов на DM'],
+    [4, '≥500 фрагов'],
+    [3, '≥250 фрагов'],
+    [2, '≥100 фрагов'],
+    [1, '<100 фрагов']
+  ], mech);
+
+  // Faceit
+  document.getElementById('faceit-score').textContent = face + ' / 5';
+  document.getElementById('faceit-score').className = `big-score ${face>=4?'good':face>=3?'mid':'bad'}`;
+  renderTable('faceit-table', [
+    [5, '≥6 матчей за день'],
+    [4, '4-5 матчей'],
+    [3, '3 матча'],
+    [2, '1 матч'],
+    [1, '0 матчей']
+  ], face);
+
+  // Сон
+  document.getElementById('sleep-score').textContent = sleep + ' / 5';
+  document.getElementById('sleep-score').className = `big-score ${sleep>=4?'good':sleep>=3?'mid':'bad'}`;
+  renderTable('sleep-table', [
+    [5, 'Спал ≥7:30 и встал до 11:00'],
+    [4, 'Спал ≥7:30, встал после 11:00'],
+    [3, '6-7:30, встал до 11:00'],
+    [2, '6-7:30, встал после 11:00'],
+    [1, 'Спал <6 часов']
+  ], sleep);
+
+  // Результати матчів (приклад, додай поля в модалку)
+  document.getElementById('results-content').innerHTML = `
+    <p>4 матча на Faceit</p>
+    <p style="color:#0f0">2 WIN 4 LOSE</p>
+    <p style="color:#f44">-60 ELO</p>
+    <p>Текущий рейтинг: <span style="color:#f44">2518 ELO (-4%)</span></p>
+  `;
+
+  // Індивідуальні
+  document.getElementById('ind-content').innerHTML = `
+    <p>HLTV рейтинг 2.1</p>
+    <p>1.12</p>
+    <p>K/D 1.01   AVG 18   7</p>
+  `;
+
+  // Ціль ELO (приклад, додай поле currentELO в модалку)
+  const currentELO = d.currentELO || 2518;
+  const percent = Math.min(100, Math.max(0, (currentELO - 2500) / 15));
+  document.getElementById('goal-progress-fill').style.width = percent + '%';
+  document.getElementById('current-elo').textContent = currentELO + ' ELO';
+  document.getElementById('goal-progress-text').innerHTML = `Прогрес: <b>${percent.toFixed(1)}%</b>`;
+
+  // Загальний
   document.getElementById('total-score').textContent = total + ' / 5';
   document.getElementById('total-score').className = `big-score ${total>=4.5?'good':total>=3?'mid':'bad'}`;
 }
 
+function renderTable(id, rows, active) {
+  let html = '';
+  rows.forEach(([score, text]) => {
+    const cls = score === active ? 'active' : '';
+    const color = score === 5 ? '#0f0' : score === 4 ? '#ff0' : score === 3 ? '#ff0' : score === 2 ? '#f80' : '#f44';
+    html += `<tr class="\( {cls}"><td class="score-col" style="color: \){color}">\( {score}</td><td> \){text}</td></tr>`;
+  });
+  document.getElementById(id).innerHTML = html;
+}
+
 // ==================== МОДАЛ ====================
 function openModal() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDate(new Date());
   document.getElementById('modal-date').textContent = today;
   const d = userData[today] || {};
   document.getElementById('steps').value = d.steps || '';
   document.getElementById('nutrition').value = d.nutrition || '0';
-  document.getElementById('dm-frags').value = d.dmFrags || '';
-  document.getElementById('faceit-matches').value = d.faceitMatches || '';
+  document.getElementById('dm').value = d.dm || '';
+  document.getElementById('faceit').value = d.faceit || '';
   document.getElementById('sleep-start').value = d.sleepStart || '';
   document.getElementById('sleep-end').value = d.sleepEnd || '';
   document.getElementById('modal').style.display = 'flex';
@@ -339,7 +490,7 @@ function renderCalendar() {
   while (day <= last.getDate()) {
     if ((startWd + day - 1) % 7 === 0 && day > 1) html += '</tr><tr>';
     const dateStr = formatDate(new Date(y, m, day));
-    const has = userData[dateStr] ? ' style="background:#0a4022;cursor:pointer;" onclick="renderCard(\''+dateStr+'\')"' : '';
+    const has = userData[dateStr] ? ' style="background:#0a4022;cursor:pointer;" onclick="renderAllCards(\''+dateStr+'\')"' : '';
     const num = getDayNumber(dateStr);
     const label = num ? `<div class="day-label">День №${num}</div>` : '';
     html += `<td\( {has}> \){day}${label}</td>`;
@@ -359,19 +510,17 @@ function compareWithYesterday() {
   const todayStr = formatDate(new Date());
   const yestStr = formatDate(yest);
 
-  const t = userData[todayStr];
-  const y = userData[yestStr];
+  const t = getTotalScore(userData[todayStr]);
+  const y = getTotalScore(userData[yestStr]);
 
   if (!t || !y) return alert('Немає даних для порівняння');
 
-  const ts = getTotalScore(t);
-  const ys = getTotalScore(y);
-
-  alert(`Сьогодні: ${ts}/5\nВчора: ${ys}/5\nРізниця: ${(ts - ys).toFixed(1)}`);
+  alert(`Сьогодні: ${t}/5\nВчора: ${y}/5\nРізниця: ${(t - y).toFixed(1)}`);
 }
 
 // Початок
 renderCalendar();
+renderAllCards(formatDate(new Date()));
 </script>
 </body>
-  </html>
+</html>
